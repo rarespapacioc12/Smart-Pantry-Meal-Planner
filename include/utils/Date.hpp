@@ -40,6 +40,7 @@ private:
     int day = 0;
 
 public:
+    Date();
     Date(int, int, int);
     static Date fromISO(const std::string&);
     std::string toISO() const;

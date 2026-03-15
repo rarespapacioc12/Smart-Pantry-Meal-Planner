@@ -99,6 +99,7 @@ bool isLeapYear(int year){
     return true;
 }
 
+Date::Date() = default;
 
 Date::Date(int year, int month, int day){
     if(year <= 0){ // Consideram ca ne intereseaza datele dupa Hristos
