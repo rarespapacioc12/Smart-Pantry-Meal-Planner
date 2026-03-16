@@ -1,6 +1,9 @@
 #include "../../include/core/RecipeLine.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <cmath>
 
 RecipeLine::RecipeLine() = default;
 
@@ -26,11 +29,20 @@ bool RecipeLine::optional() const{
 }
 
 std::ostream& operator<<(std::ostream& os, const RecipeLine& recipeLine){
+    auto formatAmount = [](double amount) -> std::string {
+        if(amount == std::floor(amount)){
+            return std::to_string(static_cast<int>(amount));
+        }
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << amount;
+        return ss.str();
+    };
+    
     if(recipeLine.optional()){
-        os << "This recipe suggests using " << std::to_string(recipeLine.amount()) << " of " << recipeLine.ingredient().name() << "\n";
+        os << "This recipe suggests using " << formatAmount(recipeLine.amount()) << " " << toString(recipeLine.ingredient().unit()) << " of " << recipeLine.ingredient().name() << "\n";
     }
     else{
-        os << "This recipe requires " << std::to_string(recipeLine.amount()) << " of " << recipeLine.ingredient().name() << "\n";
+        os << "This recipe requires " << formatAmount(recipeLine.amount()) << " " << toString(recipeLine.ingredient().unit()) << " of " << recipeLine.ingredient().name() << "\n";
     }
     return os;
 }
