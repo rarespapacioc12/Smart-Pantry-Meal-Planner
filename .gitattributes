@@ -1,1 +1,30 @@
 ext/** linguist-vendored
+
+*.cpp text eol=lf
+*.hpp text eol=lf
+*.h text eol=lf
+*.cc text eol=lf
+
+CMakeLists.txt text eol=lf
+*.cmake text eol=lf
+*.props text eol=lf
+
+build/ export-ignore
+cmake-build-debug/ export-ignore
+cmake-build-release/ export-ignore
+*.o binary
+*.a binary
+*.so binary
+*.dll binary
+*.exe binary
+
+*.sh text eol=lf
+*.command text eol=lf
+
+*.md text eol=lf
+LICENSE text eol=lf
+README.md text eol=lf
+tastatura.txt text eol=lf
+*.supp text eol=lf
+
+*.csv text eol=lf
