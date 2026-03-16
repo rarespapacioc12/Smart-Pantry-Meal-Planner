@@ -1,5 +1,6 @@
 #include "../../include/core/RecipeLine.hpp"
 #include <stdexcept>
+#include <iostream>
 
 RecipeLine::RecipeLine() = default;
 
@@ -16,20 +17,20 @@ const Ingredient& RecipeLine::ingredient() const{
     return this->ingredient_;
 }
 
-const double RecipeLine::amount() const{
+double RecipeLine::amount() const{
     return this->amount_;
 }
 
-const bool RecipeLine::optional() const{
+bool RecipeLine::optional() const{
     return this->optional_;
 }
 
 std::ostream& operator<<(std::ostream& os, const RecipeLine& recipeLine){
     if(recipeLine.optional()){
-        os << "This recipe suggests using " + std::to_string(recipeLine.amount()) + " of " + recipeLine.ingredient().name() + "\n";
+        os << "This recipe suggests using " << std::to_string(recipeLine.amount()) << " of " << recipeLine.ingredient().name() << "\n";
     }
     else{
-        os << "This recipe requires " + std::to_string(recipeLine.amount()) + " of " + recipeLine.ingredient().name() + "\n";
+        os << "This recipe requires " << std::to_string(recipeLine.amount()) << " of " << recipeLine.ingredient().name() << "\n";
     }
     return os;
 }

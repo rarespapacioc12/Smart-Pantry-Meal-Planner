@@ -14,7 +14,7 @@ public:
     void add(const StockItem&);
     bool removeFirstByName(const std::string&);
     double available(const std::string&) const;
-    std::vector<StockItem> expiringSoon(int, const Date&);
+    std::vector<StockItem> expiringSoon(int, const Date&) const;
     void consumeByExpiry(const std::string&, double);
     const std::vector<StockItem>& items() const;
     friend std::ostream& operator<<(std::ostream&, const Inventory&);

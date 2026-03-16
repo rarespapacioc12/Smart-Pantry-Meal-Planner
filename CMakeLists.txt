@@ -1,15 +1,10 @@
 cmake_minimum_required(VERSION 3.26)
 
-# NOTE: update executable name in .github/workflows/cmake.yml:25 when changing executable name in this file
-# for now, the project name is used as the executable name
 set(MAIN_PROJECT_NAME "oop")
 set(MAIN_EXECUTABLE_NAME "${MAIN_PROJECT_NAME}")
 
 
 project(${MAIN_PROJECT_NAME})
-# set(CMAKE_PROJECT_VERSION_MAJOR 0)
-# set(CMAKE_PROJECT_VERSION_MINOR 0)
-# set(CMAKE_PROJECT_VERSION_PATCH 1)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -54,7 +49,20 @@ add_executable(${MAIN_EXECUTABLE_NAME}
 )
 target_sources(${MAIN_EXECUTABLE_NAME}
     PRIVATE
-        src/Example.cpp
+        src/core/Ingredient.cpp
+        src/core/Inventory.cpp
+        src/core/Recipe.cpp
+        src/core/RecipeBook.cpp
+        src/core/RecipeLine.cpp
+        src/core/ShoppingItem.cpp
+        src/core/ShoppingList.cpp
+        src/core/StockItem.cpp
+        src/core/Types.cpp
+        src/exceptions/AppError.cpp
+        src/io/CsvReader.cpp
+        src/io/CsvWriter.cpp
+        src/utils/Date.cpp
+        src/utils/StringUtil.cpp
 )
 
 # NOTE: Add all defined targets (e.g. executables, libraries, etc. )

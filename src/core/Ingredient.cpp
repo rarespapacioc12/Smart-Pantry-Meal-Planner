@@ -1,5 +1,7 @@
 #include "../../include/core/Ingredient.hpp"
 #include <string>
+#include <cctype>
+#include <iostream>
 
 Ingredient::Ingredient() = default;
 
@@ -30,6 +32,6 @@ Unit Ingredient::unit() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const Ingredient& ingredient){
-    os << "Ingredient " + ingredient.name() + " is measured in unit " + toString(ingredient.unit()) + "\n";
+    os << "Ingredient " << ingredient.name() << " is measured in unit " << toString(ingredient.unit()) << "\n";
     return os;
 }

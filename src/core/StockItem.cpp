@@ -1,5 +1,6 @@
 #include "../../include/core/StockItem.hpp"
 #include <stdexcept>
+#include <iostream>
 
 StockItem::StockItem(const Ingredient& ingredient, double quantity, const Date& date, const Location& location){
     if(quantity <= 0){
@@ -47,6 +48,6 @@ int StockItem::daysToExpire(const Date& today) const{
 
 std::ostream& operator<<(std::ostream& os, const StockItem& stockItem){
     os << stockItem.ingredient();
-    os << "It expires on " + stockItem.expiry().toISO() + ", has an available quantity of " + std::to_string(stockItem.quantity()) + toString(stockItem.ingredient().unit()) + " and it is located in the " + toString(stockItem.location()) + ".\n";
+    os << "It expires on " << stockItem.expiry().toISO() << ", has an available quantity of " << std::to_string(stockItem.quantity()) << toString(stockItem.ingredient().unit()) << " and it is located in the " << toString(stockItem.location()) << ".\n";
     return os;
 }

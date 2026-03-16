@@ -12,7 +12,7 @@ public:
     RecipeLine();
     RecipeLine(const Ingredient&, double, bool);
     const Ingredient& ingredient() const;
-    const double amount() const;
-    const bool optional() const;
+    double amount() const;
+    bool optional() const;
     friend std::ostream& operator<<(std::ostream&, const RecipeLine&);
 };

@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
+#include <iostream>
 
 Inventory::Inventory() = default;
 
@@ -44,7 +45,7 @@ double Inventory::available(const std::string& name) const {
     return quant;
 }
 
-std::vector<StockItem> Inventory::expiringSoon(int days, const Date& today){
+std::vector<StockItem> Inventory::expiringSoon(int days, const Date& today) const{
     std::vector<StockItem> expiring_soon;
 
     for(const StockItem& stockItem : this->items_){
@@ -65,8 +66,8 @@ void Inventory::consumeByExpiry(const std::string& ingredientName, double amount
         }
     }
 
-    std::sort(consumeList.begin(), consumeList.end(), [](const StockItem& a, const StockItem& b){
-        return a.expiry() < b.expiry();
+    std::sort(consumeList.begin(), consumeList.end(), [](const std::vector<StockItem>::iterator& a, const std::vector<StockItem>::iterator& b){
+        return a->expiry() < b->expiry();
     });
 
     for(auto it = consumeList.begin(); it != consumeList.end() && amount > 0; ++it){
