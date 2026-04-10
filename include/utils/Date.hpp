@@ -43,9 +43,11 @@ public:
     Date();
     Date(int, int, int);
     static Date fromISO(const std::string&);
+    static Date today();
     std::string toISO() const;
     bool operator<(const Date&) const;
     bool operator==(const Date&) const;
+    bool operator<=(const Date&) const;
     int daysUntil(const Date&) const;
     friend std::ostream& operator<<(std::ostream&, const Date&);
 };

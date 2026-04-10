@@ -45,3 +45,44 @@ Location parseLocation(const std::string& s){
     if (s == "Pantry") { return Location::Pantry; }
     throw std::runtime_error("Invalid Location: " + s + "\n");
 }
+
+std::string toString(Priority priority){
+    switch(priority){
+        case Priority::Low: return "Low";
+        case Priority::Normal: return "Normal";
+        case Priority::Medium: return "Medium";
+        case Priority::High: return "High";
+        case Priority::Urgent: return "Urgent";
+    }
+    return "Unknown";
+}
+
+Priority parsePriority(int i){
+    switch(i){
+        case 1: return Priority::Low;
+        case 2: return Priority::Normal;
+        case 3: return Priority::Medium;
+        case 4: return Priority::High;
+        case 5: return Priority::Urgent;
+        default: return Priority::Normal;
+    }
+}
+
+std::string toString(Certification cert){
+    switch(cert){
+        case Certification::EUOrganic: return "EU Organic";
+        case Certification::CCPB: return "CCPB";
+        case Certification::Bioland: return "Bioland";
+        case Certification::Demeter: return "Demeter";
+    }
+    return "Unknown";
+}
+
+Certification parseCertification(const std::string& s){
+    if(s == "EU Organic") return Certification::EUOrganic;
+    if(s == "CCPB") return Certification::CCPB;
+    if(s == "Bioland") return Certification::Bioland;
+    if(s == "Demeter") return Certification::Demeter;
+    throw std::runtime_error("Invalid Certification: " + s + "\n");
+}
+

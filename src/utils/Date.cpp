@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
+#include <ctime>
 
 int getNumberOfDays(const Month& month, bool leapYear){
     switch(month){
@@ -205,6 +206,19 @@ int Date::daysUntil(const Date& other) const{
             + countDays(this->year + 1, other.year - 1);
         }
     }
+}
+
+Date Date::today(){
+    std::time_t now = std::time(nullptr);
+    std::tm* timeinfo = std::localtime(&now);
+    int year = 1900 + timeinfo->tm_year;
+    int month = 1 + timeinfo->tm_mon;
+    int day = timeinfo->tm_mday;
+    return Date(year, month, day);
+}
+
+bool Date::operator<=(const Date& other) const{
+    return (*this < other) || (*this == other);
 }
 
 std::ostream& operator<<(std::ostream& os, const Date& date){
