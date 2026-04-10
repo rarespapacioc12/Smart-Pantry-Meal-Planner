@@ -55,10 +55,17 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/core/RecipeBook.cpp
         src/core/RecipeLine.cpp
         src/core/ShoppingItem.cpp
+        src/core/StandardShoppingItem.cpp
+        src/core/PromotedShoppingItem.cpp
+        src/core/BulkShoppingItem.cpp
+        src/core/OrganicShoppingItem.cpp
         src/core/ShoppingList.cpp
         src/core/StockItem.cpp
         src/core/Types.cpp
         src/exceptions/AppError.cpp
+        src/exceptions/InvalidQuantityError.cpp
+        src/exceptions/ItemNotFoundError.cpp
+        src/exceptions/PricingCalculationError.cpp
         src/io/CsvReader.cpp
         src/io/CsvWriter.cpp
         src/utils/Date.cpp

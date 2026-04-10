@@ -41,6 +41,11 @@ bool BulkShoppingItem::canDeliver() const{
 double BulkShoppingItem::min_quantity() const{
     return _min_quantity;
 }
+
+double BulkShoppingItem::bulk_discount() const{
+    return _bulk_discount;
+}
+
 bool BulkShoppingItem::meetsMinimum() const{
     return quantity() >= _min_quantity;
 }
