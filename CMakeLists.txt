@@ -59,6 +59,7 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/core/PromotedShoppingItem.cpp
         src/core/BulkShoppingItem.cpp
         src/core/OrganicShoppingItem.cpp
+        src/core/SeasonalShoppingItem.cpp
         src/core/ShoppingList.cpp
         src/core/StockItem.cpp
         src/core/Types.cpp

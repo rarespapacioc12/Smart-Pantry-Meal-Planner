@@ -113,34 +113,42 @@ O cerință nu se consideră îndeplinită dacă este realizată doar prin cod g
 ## Tema 2
 
 #### Cerințe
-- [ ] separarea codului din clase în `.h` (sau `.hpp`) și `.cpp`
-- [ ] moșteniri:
+- [x] separarea codului din clase în `.h` (sau `.hpp`) și `.cpp`
+- [x] moșteniri:
   - minim o clasă de bază și **3 clase derivate** din aceeași ierarhie; cele 3 derivate moștenesc aceeași clasă de bază
   - ierarhia trebuie să fie cu bază proprie, nu derivată dintr-o clasă predefinită
-  - [ ] funcții virtuale (pure) apelate prin pointeri de bază din clasa care conține atributul de tip pointer de bază
+  - [x] funcții virtuale (pure) apelate prin pointeri de bază din clasa care conține atributul de tip pointer de bază
     - minim o funcție virtuală va fi **specifică temei** (i.e. nu simple citiri/afișări sau preluate din biblioteci i.e. draw/update/render)
     - constructori virtuali (clone): sunt necesari, dar nu se consideră funcții specifice temei
     - afișare virtuală, interfață non-virtuală
-  - [ ] apelarea constructorului din clasa de bază din constructori din derivate
-  - [ ] clasă cu atribut de tip pointer la o clasă de bază cu derivate; aici apelați funcțiile virtuale prin pointer de bază, eventual prin interfața non-virtuală din bază
-    - [ ] suprascris cc/op= pentru copieri/atribuiri corecte, copy and swap
-    - [ ] `dynamic_cast`/`std::dynamic_pointer_cast` pentru downcast cu sens
-    - [ ] smart pointers (recomandat, opțional)
-- [ ] excepții
-  - [ ] ierarhie proprie cu baza `std::exception` sau derivată din `std::exception`; minim **3** clase pentru erori specifice distincte
+  - [x] apelarea constructorului din clasa de bază din constructori din derivate
+  - [x] clasă cu atribut de tip pointer la o clasă de bază cu derivate; aici apelați funcțiile virtuale prin pointer de bază, eventual prin interfața non-virtuală din bază
+    - [x] suprascris cc/op= pentru copieri/atribuiri corecte, copy and swap
+    - [x] `dynamic_cast`/`std::dynamic_pointer_cast` pentru downcast cu sens
+    - [x] smart pointers (recomandat, opțional)
+- [x] excepții
+  - [x] ierarhie proprie cu baza `std::exception` sau derivată din `std::exception`; minim **3** clase pentru erori specifice distincte
     - clasele de excepții trebuie să trateze categorii de erori distincte (exemplu de erori echivalente: citire fișiere cu diverse extensii)
-  - [ ] utilizare cu sens: de exemplu, `throw` în constructor (sau funcție care întoarce un obiect), `try`/`catch` în `main`
+  - [x] utilizare cu sens: de exemplu, `throw` în constructor (sau funcție care întoarce un obiect), `try`/`catch` în `main`
   - această ierarhie va fi complet independentă de ierarhia cu funcții virtuale
-- [ ] funcții și atribute `static`
-- [ ] STL
-- [ ] cât mai multe `const`
-- [ ] funcții *de nivel înalt*, de eliminat cât mai mulți getters/setters/funcții low-level
-- [ ] minim 75-78% din codul propriu să fie C++
-- [ ] la sfârșit: commit separat cu adăugarea unei noi clase derivate fără a modifica restul codului, **pe lângă cele 3 derivate deja adăugate** din aceeași ierarhie
+- [x] funcții și atribute `static`
+- [x] STL
+- [x] cât mai multe `const`
+- [x] funcții *de nivel înalt*, de eliminat cât mai mulți getters/setters/funcții low-level
+- [x] minim 75-78% din codul propriu să fie C++
+- [x] la sfârșit: commit separat cu adăugarea unei noi clase derivate fără a modifica restul codului, **pe lângă cele 3 derivate deja adăugate** din aceeași ierarhie
   - noua derivată nu poate fi una existentă care a fost ștearsă și adăugată din nou
   - noua derivată va fi integrată în codul existent (adică va fi folosită, nu adăugată doar ca să fie)
+  - implementată ca `SeasonalShoppingItem`: prețul se ajustează cu un discount în sezon și o supratacsă în extrasezon; `canDeliver()` întoarce `true` doar în sezon. Folosită din `main.cpp` și înregistrată în `ShoppingList::createItem` pentru tipul `"Seasonal"`.
 - [ ] tag de `git` pe commit cu **toate bifele**: de exemplu `v0.2`
 - [ ] code review #2 2 proiecte
+
+#### Map cerințe → cod
+
+- **Ierarhia cu funcții virtuale**: `ShoppingItem` (bază) + `StandardShoppingItem`, `BulkShoppingItem`, `PromotedShoppingItem`, `OrganicShoppingItem` (derivate). Funcțiile virtuale pure specifice temei sunt `calculateTotalCost()` și `category()`; `clone()` este constructorul virtual; `print()` este afișarea virtuală, iar `operator<<` este interfața non-virtuală.
+- **Clasă cu pointer de bază**: `ShoppingList` deține `std::vector<std::shared_ptr<ShoppingItem>>` și aplică `std::dynamic_pointer_cast` în `applySpecialOffer` și `getUndiscountedItems`. Copy/assign sunt implementate cu copy-and-swap și `clone()` (copia este independentă de original).
+- **Ierarhia de excepții**: `AppError : std::exception` + `InvalidQuantityError`, `ItemNotFoundError`, `PricingCalculationError`. Sunt aruncate din constructorii `ShoppingItem`/`StandardShoppingItem`/etc. și prinse în `main()`.
+- **Static**: `ShoppingList::_list_count`, `ShoppingList::getTotalListsCreated()`, `ShoppingList::resetListCount()`, `ShoppingList::createItem()` (factory).
 
 ## Tema 3
 
