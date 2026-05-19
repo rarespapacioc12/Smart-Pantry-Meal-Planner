@@ -20,5 +20,6 @@ public:
 
     bool canDeliver() const override;
     double discount_percentage() const;
+    const Date& promo_end() const;
     bool isValidPromo(const Date&) const;
 };

@@ -49,7 +49,9 @@ std::vector<StockItem> Inventory::expiringSoon(int days, const Date& today) cons
     std::vector<StockItem> expiring_soon;
 
     for(const StockItem& stockItem : this->items_){
-        if(stockItem.daysToExpire(today) <= days){
+        // Already-expired items are reported too; daysToExpire would throw on them,
+        // so short-circuit through isExpired() first.
+        if(stockItem.isExpired(today) || stockItem.daysToExpire(today) <= days){
             expiring_soon.push_back(stockItem);
         }
     }

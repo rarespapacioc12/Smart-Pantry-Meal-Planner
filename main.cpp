@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -13,166 +14,103 @@
 #include "include/core/OrganicShoppingItem.hpp"
 #include "include/core/SeasonalShoppingItem.hpp"
 #include "include/core/ShoppingList.hpp"
+#include "include/io/DomainJson.hpp"
+#include "include/io/JsonReader.hpp"
+#include "include/io/JsonWriter.hpp"
 #include "include/utils/Date.hpp"
 #include "include/exceptions/AppError.hpp"
 #include "include/exceptions/InvalidQuantityError.hpp"
 #include "include/exceptions/ItemNotFoundError.hpp"
 #include "include/exceptions/PricingCalculationError.hpp"
+#include "include/exceptions/JsonParseError.hpp"
 
-static void demoInventoryAndRecipes(){
-    std::cout << "===== PANTRY & RECIPES DEMO =====\n\n";
+namespace {
+    const std::string kInventoryIn   = "data/inventory.json";
+    const std::string kRecipesIn     = "data/recipes.json";
+    const std::string kShoppingIn    = "data/shopping_list.json";
+    const std::string kInventoryOut  = "data/inventory.out.json";
+    const std::string kRecipesOut    = "data/recipes.out.json";
+    const std::string kShoppingOut   = "data/shopping_list.out.json";
+}
 
-    Ingredient pasta("Pasta", Unit::g);
-    Ingredient eggs("Eggs", Unit::pcs);
-    Ingredient bacon("Bacon", Unit::g);
-    Ingredient parmesan("Parmesan", Unit::g);
-    Ingredient tomatoes("Tomatoes", Unit::g);
-    Ingredient olive_oil("Olive Oil", Unit::ml);
-    Ingredient salt("Salt", Unit::g);
+static void demoInventoryAndRecipesFromJson(){
+    std::cout << "===== PANTRY & RECIPES (loaded from JSON) =====\n\n";
 
-    std::vector<RecipeLine> carbonara_lines = {
-        RecipeLine(pasta, 400, false),
-        RecipeLine(eggs, 3, false),
-        RecipeLine(bacon, 200, false),
-        RecipeLine(parmesan, 100, false),
-        RecipeLine(salt, 10, true),
-    };
-    std::vector<std::string> carbonara_steps = {
-        "Boil pasta until al dente",
-        "Fry bacon until crispy",
-        "Mix eggs with grated parmesan",
-        "Combine pasta with bacon",
-        "Mix in egg mixture while hot",
-    };
-    Recipe carbonara("Pasta Carbonara", 20, carbonara_lines, carbonara_steps);
+    std::cout << "Loading " << kInventoryIn << " ...\n";
+    Inventory pantry = DomainJson::loadInventory(kInventoryIn);
+    std::cout << "Loading " << kRecipesIn   << " ...\n";
+    RecipeBook book  = DomainJson::loadRecipeBook(kRecipesIn);
+    std::cout << "Loaded " << pantry.items().size() << " stock items and "
+              << book.all().size() << " recipes.\n\n";
 
-    std::vector<RecipeLine> tomato_pasta_lines = {
-        RecipeLine(pasta, 350, false),
-        RecipeLine(tomatoes, 500, false),
-        RecipeLine(olive_oil, 50, false),
-        RecipeLine(salt, 10, true),
-    };
-    std::vector<std::string> tomato_pasta_steps = {
-        "Crush tomatoes",
-        "Heat olive oil in pan",
-        "Add tomatoes and simmer 15 minutes",
-        "Cook pasta separately",
-        "Combine with sauce",
-    };
-    Recipe tomato_pasta("Pasta Pomodoro", 25, tomato_pasta_lines, tomato_pasta_steps);
+    std::cout << "--- Inventory ---\n" << pantry << '\n';
 
-    RecipeBook recipe_book;
-    recipe_book.add(carbonara);
-    recipe_book.add(tomato_pasta);
-    std::cout << recipe_book << '\n';
+    std::cout << "--- Recipes ---\n" << book << '\n';
 
-    Inventory pantry;
-    const Date today(2026, 3, 16);
-    pantry.add(StockItem(pasta, 800, Date(2026, 9, 16), Location::Pantry));
-    pantry.add(StockItem(eggs, 12, Date(2026, 4, 1), Location::Fridge));
-    pantry.add(StockItem(bacon, 300, Date(2026, 3, 25), Location::Fridge));
-    pantry.add(StockItem(parmesan, 250, Date(2026, 6, 16), Location::Fridge));
-    pantry.add(StockItem(tomatoes, 1000, Date(2026, 3, 30), Location::Pantry));
-    pantry.add(StockItem(olive_oil, 500, Date(2027, 3, 16), Location::Pantry));
-    pantry.add(StockItem(salt, 500, Date(2027, 12, 31), Location::Pantry));
-
-    std::cout << "--- Full Inventory ---\n" << pantry << '\n';
-
-    std::cout << "--- Top recipe recommendations ---\n";
-    const std::vector<const Recipe*> recommendations = recipe_book.recommendTopK(pantry, 2);
-    for(std::size_t i = 0; i < recommendations.size(); ++i){
-        std::cout << (i + 1) << ". " << recommendations[i]->title() << '\n';
+    const Date today(2026, 5, 18);
+    std::cout << "--- Items expiring within 20 days of " << today.toISO() << " ---\n";
+    for(const StockItem& item : pantry.expiringSoon(20, today)){
+        std::cout << item;
     }
     std::cout << '\n';
 
-    std::cout << "--- Items expiring within 20 days ---\n";
-    const std::vector<StockItem> expiring = pantry.expiringSoon(20, today);
-    for(const StockItem& item : expiring){
-        std::cout << item;
+    std::cout << "--- Top recipe recommendations ---\n";
+    std::vector<const Recipe*> recommendations = book.recommendTopK(pantry, 3);
+    for(std::size_t i = 0; i < recommendations.size(); ++i){
+        std::cout << (i + 1) << ". " << recommendations[i]->title() << '\n';
     }
     std::cout << '\n';
 
     std::cout << "Consuming 200g of Bacon...\n";
     pantry.consumeByExpiry("Bacon", 200);
     std::cout << "Remaining Bacon: " << pantry.available("Bacon") << "g\n\n";
+
+    std::cout << "Saving updated inventory to " << kInventoryOut << " ...\n";
+    DomainJson::saveInventory(kInventoryOut, pantry);
+    std::cout << "Saving recipes (round-trip) to " << kRecipesOut << " ...\n";
+    DomainJson::saveRecipeBook(kRecipesOut, book);
+    std::cout << "Done.\n\n";
 }
 
-static void demoShoppingHierarchy(){
-    std::cout << "===== SHOPPING ITEM POLYMORPHISM DEMO =====\n\n";
+static void demoShoppingListFromJson(){
+    std::cout << "===== SHOPPING LIST (loaded from JSON) =====\n\n";
 
-    ShoppingList list;
+    std::cout << "Loading " << kShoppingIn << " ...\n";
+    ShoppingList list = DomainJson::loadShoppingList(kShoppingIn);
+    std::cout << "Loaded " << list.size() << " items.\n\n";
 
-    // Build heterogeneous list using the static factory.
-    list.addItem(ShoppingList::createItem(
-        "Standard", "Pasta", 2, Unit::pcs, 5.5, Priority::Normal, 0,
-        Date::today(), 0, Certification::EUOrganic, "Barilla"));
-    list.addItem(ShoppingList::createItem(
-        "Bulk", "Flour", 10, Unit::g, 3.2, Priority::Medium, 5, Date::today(), 8));
-    list.addItem(ShoppingList::createItem(
-        "Promoted", "Bacon", 1, Unit::g, 12.0, Priority::High, 25, Date(2030, 12, 31)));
-    list.addItem(ShoppingList::createItem(
-        "Organic", "Tomatoes", 3, Unit::g, 7.0, Priority::Normal, 20,
-        Date::today(), 0, Certification::Bioland));
-    // Seasonal: in-season -> 15% off; out-of-season -> 40% surcharge.
-    // Reference date is in May, so a Summer item is out-of-season, a Spring item is in-season.
-    list.addItem(ShoppingList::createItem(
-        "Seasonal", "Strawberries", 2, Unit::g, 10.0, Priority::Normal, 15,
-        Date(2026, 5, 18), 40, Certification::EUOrganic, "Generic", Season::Spring));
-    list.addItem(ShoppingList::createItem(
-        "Seasonal", "Pumpkin", 1, Unit::g, 8.0, Priority::Low, 15,
-        Date(2026, 5, 18), 40, Certification::EUOrganic, "Generic", Season::Autumn));
+    std::cout << list << '\n';
 
-    std::cout << "--- Shopping list (operator<<) ---\n" << list << '\n';
+    std::cout << "Total cost: "         << list.calculateTotalCost()             << " lei\n";
+    std::cout << "Organic subtotal: "   << list.calculateByCategory("Organic")   << " lei\n";
+    std::cout << "Seasonal subtotal: "  << list.calculateByCategory("Seasonal")  << " lei\n\n";
 
-    std::cout << "--- displayByCategory ---\n";
-    list.displayByCategory();
-    std::cout << '\n';
-
-    std::cout << "Total cost: " << list.calculateTotalCost() << " lei\n";
-    std::cout << "Organic subtotal: " << list.calculateByCategory("Organic") << " lei\n";
-    std::cout << "Bulk subtotal: "    << list.calculateByCategory("Bulk")    << " lei\n\n";
-
-    std::cout << "--- High-priority items only ---\n";
-    for(const auto& item : list.getPriorityItems(Priority::High)){
-        std::cout << "  " << *item << '\n';
-    }
-    std::cout << '\n';
-
-    std::cout << "--- Undiscounted items (no promo) ---\n";
-    for(const auto& item : list.getUndiscountedItems()){
-        std::cout << "  " << *item << '\n';
-    }
-    std::cout << '\n';
-
-    std::cout << "--- Special offer pass (dynamic_cast diagnostics) ---\n";
-    list.applySpecialOffer(5.0);
-    std::cout << '\n';
-
-    // Polymorphism through base pointer: virtual canDeliver().
     std::cout << "--- canDeliver() via base pointer ---\n";
-    std::vector<std::shared_ptr<ShoppingItem> > snapshot = list.getPriorityItems(Priority::Low);
-    for(const std::shared_ptr<ShoppingItem>& item : snapshot){
+    for(const auto& item : list.getPriorityItems(Priority::Low)){
         std::cout << "  " << item->item_name() << " (" << item->category() << "): "
                   << (item->canDeliver() ? "deliverable" : "NOT deliverable") << '\n';
     }
     std::cout << '\n';
 
-    // Copy and swap: copying the list must produce independent items (deep clone).
-    std::cout << "--- Copy semantics ---\n";
-    std::cout << "Lists alive before copy: " << ShoppingList::getTotalListsCreated() << '\n';
-    ShoppingList copy = list;
-    std::cout << "Lists alive after copy:  " << ShoppingList::getTotalListsCreated() << '\n';
-    std::cout << "Copy contains " << copy.size() << " items\n";
+    std::cout << "--- Special offers (dynamic_pointer_cast diagnostics) ---\n";
+    list.applySpecialOffer(5.0);
+    std::cout << '\n';
 
-    ShoppingList assigned;
-    assigned = list;
-    std::cout << "After op=, assigned contains " << assigned.size() << " items\n";
-    std::cout << "Lists alive after assignment: " << ShoppingList::getTotalListsCreated() << "\n\n";
-
-    // Remove an item from the original; the copy should be unaffected.
+    std::cout << "Removing 'Pasta' from the list...\n";
     list.removeItem("Pasta");
-    std::cout << "Original after removing 'Pasta': " << list.size() << " items\n";
-    std::cout << "Copy still:                       " << copy.size() << " items\n\n";
+    std::cout << "Items remaining: " << list.size() << "\n\n";
+
+    std::cout << "Saving updated shopping list to " << kShoppingOut << " ...\n";
+    DomainJson::saveShoppingList(kShoppingOut, list);
+
+    std::cout << "Round-trip check: reloading " << kShoppingOut << " ...\n";
+    const ShoppingList reloaded = DomainJson::loadShoppingList(kShoppingOut);
+    const double original_total = list.calculateTotalCost();
+    const double reloaded_total = reloaded.calculateTotalCost();
+    std::cout << "  original total = " << original_total
+              << " | reloaded total = " << reloaded_total
+              << " | match: " << (std::abs(original_total - reloaded_total) < 1e-9 ? "YES" : "NO") << '\n';
+    std::cout << "Done.\n\n";
 }
 
 static void demoExceptions(){
@@ -203,7 +141,15 @@ static void demoExceptions(){
                   << " [missing=" << e.item_name() << ", code=" << e.code() << "]\n";
     }
 
-    // 4) Catch as base AppError to show the hierarchy.
+    // 4) JsonParseError thrown from the JSON reader.
+    try {
+        (void)JsonReader::parse("{ \"items\": [1, 2, , 3] }");
+    } catch (const JsonParseError& e){
+        std::cout << "Caught JsonParseError: " << e.what()
+                  << " [line=" << e.line() << ", col=" << e.column() << ", code=" << e.code() << "]\n";
+    }
+
+    // 5) Catch as base AppError to show the hierarchy.
     try {
         StandardShoppingItem missing_supplier("Milk", 1, Unit::ml, 5.0, Priority::Normal, "");
     } catch (const AppError& e){
@@ -215,8 +161,8 @@ static void demoExceptions(){
 
 int main() {
     try {
-        demoInventoryAndRecipes();
-        demoShoppingHierarchy();
+        demoInventoryAndRecipesFromJson();
+        demoShoppingListFromJson();
         demoExceptions();
         std::cout << "===== DEMO COMPLETED SUCCESSFULLY =====\n";
     }

@@ -28,4 +28,7 @@ public:
 
     Season season() const;
     bool inSeason() const;
+    double inSeasonDiscount() const;
+    double offSeasonSurcharge() const;
+    const Date& referenceDate() const;
 };

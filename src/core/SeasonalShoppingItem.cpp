@@ -78,3 +78,7 @@ Season SeasonalShoppingItem::season() const {
 bool SeasonalShoppingItem::inSeason() const {
     return isInSeason(_season, monthOf(_reference_date));
 }
+
+double SeasonalShoppingItem::inSeasonDiscount() const { return _in_season_discount; }
+double SeasonalShoppingItem::offSeasonSurcharge() const { return _off_season_surcharge; }
+const Date& SeasonalShoppingItem::referenceDate() const { return _reference_date; }

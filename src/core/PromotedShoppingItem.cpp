@@ -42,6 +42,10 @@ double PromotedShoppingItem::discount_percentage() const{
     return _discount_percentage;
 }
 
+const Date& PromotedShoppingItem::promo_end() const{
+    return _promo_end;
+}
+
 bool PromotedShoppingItem::isValidPromo(const Date& current_date) const{
     return current_date <= _promo_end;
 }

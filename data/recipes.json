@@ -1,0 +1,53 @@
+{
+  "recipes": [
+    {
+      "title": "Pasta Carbonara",
+      "prepMinutes": 20,
+      "lines": [
+        { "ingredient": "Pasta",    "unit": "g",   "amount": 400, "optional": false },
+        { "ingredient": "Eggs",     "unit": "pcs", "amount": 3,   "optional": false },
+        { "ingredient": "Bacon",    "unit": "g",   "amount": 200, "optional": false },
+        { "ingredient": "Parmesan", "unit": "g",   "amount": 100, "optional": false },
+        { "ingredient": "Salt",     "unit": "g",   "amount": 10,  "optional": true  }
+      ],
+      "steps": [
+        "Boil pasta until al dente",
+        "Fry bacon until crispy",
+        "Mix eggs with grated parmesan",
+        "Combine pasta with bacon",
+        "Mix in egg mixture while hot"
+      ]
+    },
+    {
+      "title": "Pasta Pomodoro",
+      "prepMinutes": 25,
+      "lines": [
+        { "ingredient": "Pasta",     "unit": "g",  "amount": 350, "optional": false },
+        { "ingredient": "Tomatoes",  "unit": "g",  "amount": 500, "optional": false },
+        { "ingredient": "Olive oil", "unit": "ml", "amount": 50,  "optional": false },
+        { "ingredient": "Salt",      "unit": "g",  "amount": 10,  "optional": true  }
+      ],
+      "steps": [
+        "Crush tomatoes",
+        "Heat olive oil in pan",
+        "Add tomatoes and simmer 15 minutes",
+        "Cook pasta separately",
+        "Combine with sauce"
+      ]
+    },
+    {
+      "title": "Roast Chicken",
+      "prepMinutes": 60,
+      "lines": [
+        { "ingredient": "Chicken",   "unit": "g",  "amount": 500, "optional": false },
+        { "ingredient": "Olive oil", "unit": "ml", "amount": 20,  "optional": false },
+        { "ingredient": "Salt",      "unit": "g",  "amount": 8,   "optional": false }
+      ],
+      "steps": [
+        "Preheat oven to 200C",
+        "Rub chicken with oil and salt",
+        "Roast for 50-60 minutes"
+      ]
+    }
+  ]
+}

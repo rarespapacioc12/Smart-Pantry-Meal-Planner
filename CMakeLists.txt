@@ -67,8 +67,11 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/exceptions/InvalidQuantityError.cpp
         src/exceptions/ItemNotFoundError.cpp
         src/exceptions/PricingCalculationError.cpp
-        src/io/CsvReader.cpp
-        src/io/CsvWriter.cpp
+        src/exceptions/JsonParseError.cpp
+        src/io/JsonValue.cpp
+        src/io/JsonReader.cpp
+        src/io/JsonWriter.cpp
+        src/io/DomainJson.cpp
         src/utils/Date.cpp
         src/utils/StringUtil.cpp
 )
@@ -102,6 +105,6 @@ if(APPLE)
     install(FILES launcher.command DESTINATION ${DESTINATION_DIR})
 endif()
 
-copy_files(FILES tastatura.txt DIRECTORY assets COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
+copy_files(FILES tastatura.txt DIRECTORY assets data COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(FILES tastatura.txt config.json DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})
 # copy_files(DIRECTORY images sounds COPY_TO_DESTINATION TARGET_NAME ${MAIN_EXECUTABLE_NAME})

@@ -1,0 +1,12 @@
+{
+  "items": [
+    { "ingredient": "Pasta",     "unit": "g",   "quantity": 800,  "expiry": "2026-09-16", "location": "Pantry"  },
+    { "ingredient": "Eggs",      "unit": "pcs", "quantity": 12,   "expiry": "2026-04-01", "location": "Fridge"  },
+    { "ingredient": "Bacon",     "unit": "g",   "quantity": 300,  "expiry": "2026-03-25", "location": "Fridge"  },
+    { "ingredient": "Parmesan",  "unit": "g",   "quantity": 250,  "expiry": "2026-06-16", "location": "Fridge"  },
+    { "ingredient": "Tomatoes",  "unit": "g",   "quantity": 1000, "expiry": "2026-03-30", "location": "Pantry"  },
+    { "ingredient": "Olive oil", "unit": "ml",  "quantity": 500,  "expiry": "2027-03-16", "location": "Pantry"  },
+    { "ingredient": "Salt",      "unit": "g",   "quantity": 500,  "expiry": "2027-12-31", "location": "Pantry"  },
+    { "ingredient": "Chicken",   "unit": "g",   "quantity": 600,  "expiry": "2026-05-22", "location": "Freezer" }
+  ]
+}

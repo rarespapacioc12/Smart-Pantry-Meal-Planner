@@ -1,0 +1,68 @@
+{
+  "createdAt": "2026-05-18",
+  "items": [
+    {
+      "type": "Standard",
+      "name": "Pasta",
+      "quantity": 2,
+      "unit": "pcs",
+      "basePrice": 5.5,
+      "priority": "Normal",
+      "supplier": "Barilla"
+    },
+    {
+      "type": "Bulk",
+      "name": "Flour",
+      "quantity": 10,
+      "unit": "g",
+      "basePrice": 3.2,
+      "priority": "Medium",
+      "minQuantity": 5,
+      "bulkDiscount": 8
+    },
+    {
+      "type": "Promoted",
+      "name": "Bacon",
+      "quantity": 1,
+      "unit": "g",
+      "basePrice": 12.0,
+      "priority": "High",
+      "discountPercentage": 25,
+      "promoEnd": "2030-12-31"
+    },
+    {
+      "type": "Organic",
+      "name": "Tomatoes",
+      "quantity": 3,
+      "unit": "g",
+      "basePrice": 7.0,
+      "priority": "Normal",
+      "certification": "Bioland",
+      "organicMarkup": 20
+    },
+    {
+      "type": "Seasonal",
+      "name": "Strawberries",
+      "quantity": 2,
+      "unit": "g",
+      "basePrice": 10.0,
+      "priority": "Normal",
+      "season": "Spring",
+      "inSeasonDiscount": 15,
+      "offSeasonSurcharge": 40,
+      "referenceDate": "2026-05-18"
+    },
+    {
+      "type": "Seasonal",
+      "name": "Pumpkin",
+      "quantity": 1,
+      "unit": "g",
+      "basePrice": 8.0,
+      "priority": "Low",
+      "season": "Autumn",
+      "inSeasonDiscount": 15,
+      "offSeasonSurcharge": 40,
+      "referenceDate": "2026-05-18"
+    }
+  ]
+}
