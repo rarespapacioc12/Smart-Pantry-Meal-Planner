@@ -1,8 +1,9 @@
+#include <exception>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include <cxxopts.hpp>  // Tema 3: biblioteca externa pentru argumente in linia de comanda
+#include <cxxopts.hpp>
 
 #include "include/config/AppConfig.hpp"
 #include "include/utils/Logger.hpp"
@@ -29,12 +30,7 @@
 #include "include/exceptions/PricingCalculationError.hpp"
 #include "include/exceptions/JsonParseError.hpp"
 
-namespace {
-
-// Tema 3: instantiem clasa sablon Repository<T> cu DOUA tipuri diferite
-// (StockItem si Recipe) si folosim FUNCTIILE sablon algo::filterItems / algo::minBy
-// pentru fiecare dintre ele, demonstrand reutilizarea generica.
-void demoTemplates(const Inventory& pantry, const RecipeBook& book, const AppConfig& cfg) {
+static void demoTemplates(const Inventory& pantry, const RecipeBook& book, const AppConfig& cfg) {
     std::cout << "===== TEMPLATES (Repository<T> + algoritmi generici) =====\n\n";
 
     Repository<StockItem> stockRepo(pantry.items());
@@ -46,32 +42,27 @@ void demoTemplates(const Inventory& pantry, const RecipeBook& book, const AppCon
     const Date& today = cfg.today();
     const int window = cfg.expiryWindowDays();
 
-    // Cheie de expirare robusta: produsele deja expirate primesc o valoare negativa
-    // (daysUntil arunca exceptie pentru date trecute).
     const auto expiryKey = [&](const StockItem& s) -> int {
         return s.isExpired(today) ? -1 : s.daysToExpire(today);
     };
 
-    // Functia sablon filterItems instantiata pentru StockItem.
-    const std::vector<StockItem> expiring = algo::filterItems(
+    const std::vector<StockItem> expiring = filterItems(
         stockRepo.all(),
         [&](const StockItem& s) { return expiryKey(s) <= window; });
     std::cout << "Stock items expiring within " << window << " days (incl. expired): "
               << expiring.size() << '\n';
 
-    // Functia sablon filterItems instantiata pentru Recipe.
-    const std::vector<Recipe> cookable = algo::filterItems(
+    const std::vector<Recipe> cookable = filterItems(
         recipeRepo.all(),
         [&](const Recipe& r) { return r.missing(pantry, cfg.portions()).empty(); });
     std::cout << "Recipes fully cookable now (" << cfg.portions()
               << " portions): " << cookable.size() << '\n';
 
-    // Functia sablon minBy instantiata pentru StockItem si pentru Recipe.
-    if (const StockItem* soonest = algo::minBy(stockRepo.all(), expiryKey)) {
+    if (const StockItem* soonest = minBy(stockRepo.all(), expiryKey)) {
         std::cout << "Soonest to expire: " << soonest->ingredient().name()
                   << " (expires " << soonest->expiry().toISO() << ")\n";
     }
-    if (const Recipe* quickest = algo::minBy(recipeRepo.all(),
+    if (const Recipe* quickest = minBy(recipeRepo.all(),
             [](const Recipe& r) { return r.prepMinutes(); })) {
         std::cout << "Quickest recipe: " << quickest->title()
                   << " (" << quickest->prepMinutes() << " min)\n";
@@ -79,11 +70,11 @@ void demoTemplates(const Inventory& pantry, const RecipeBook& book, const AppCon
     std::cout << '\n';
 }
 
-void demoMealPlan(const Inventory& pantry, const RecipeBook& book,
-                  const PriceCatalog& prices, const AppConfig& cfg) {
+static void demoMealPlan(const Inventory& pantry, const RecipeBook& book,
+                         const PriceCatalog& prices, const AppConfig& cfg) {
     std::cout << "===== MEAL PLAN (Factory + auto shopping list) =====\n\n";
 
-    const ShoppingItemFactory factory;  // Design pattern: Factory
+    const ShoppingItemFactory factory;
     const MealPlanner planner(pantry, book, prices, factory);
 
     const ShoppingList autoList = planner.planShoppingForTopRecipes(
@@ -99,7 +90,7 @@ void demoMealPlan(const Inventory& pantry, const RecipeBook& book,
     Logger::instance().info("Meal plan exported to " + cfg.mealPlanOut());
 }
 
-void demoShoppingListFromJson(const AppConfig& cfg) {
+static void demoShoppingListFromJson(const AppConfig& cfg) {
     std::cout << "===== SHOPPING LIST (loaded from JSON) =====\n\n";
 
     ShoppingList list = DomainJson::loadShoppingList(cfg.shoppingIn());
@@ -112,8 +103,7 @@ void demoShoppingListFromJson(const AppConfig& cfg) {
     std::cout << "Saved (round-trip) to " << cfg.shoppingOut() << "\n\n";
 }
 
-// Demonstreaza ierarhia de exceptii construind obiecte deliberat invalide.
-void demoExceptions() {
+static void demoExceptions() {
     std::cout << "===== EXCEPTION HIERARCHY DEMO =====\n\n";
     try {
         StandardShoppingItem bad("Bread", -1, Unit::pcs, 2.0, Priority::Normal, "Local Bakery");
@@ -135,11 +125,8 @@ void demoExceptions() {
     std::cout << '\n';
 }
 
-}  // namespace
-
 int main(int argc, char** argv) {
     try {
-        // Tema 3: parsarea argumentelor cu cxxopts (biblioteca externa).
         cxxopts::Options options("smartpantry", "Smart Pantry Meal Planner");
         options.add_options()
             ("c,config",   "Path to config JSON",
@@ -156,19 +143,16 @@ int main(int argc, char** argv) {
             return 0;
         }
 
-        // Singleton de configurare: toate datele/caile vin din fisier, nimic hardcodat.
         AppConfig& cfg = AppConfig::instance();
         cfg.load(args["config"].as<std::string>());
         if (args.count("portions")) {
             cfg.overridePortions(args["portions"].as<int>());
         }
 
-        // Singleton de logging (spdlog), nivelul vine din config sau din --verbose.
         Logger::instance().init(args["verbose"].as<bool>() ? "debug" : cfg.logLevel(),
                                 cfg.logFile());
         Logger::instance().info("Smart Pantry started; config loaded.");
 
-        // Citirea starii aplicatiei EXCLUSIV din fisiere.
         const Inventory   pantry = DomainJson::loadInventory(cfg.inventoryIn());
         const RecipeBook  book   = DomainJson::loadRecipeBook(cfg.recipesIn());
         PriceCatalog prices;

@@ -1,5 +1,11 @@
+# Normalizează automat orice fișier text la LF, identic pe Windows/macOS/Linux.
+# Aceasta este regula de bază: previne diferențele de line-ending între platforme.
+* text=auto eol=lf
+
+# Dependințe externe / vendored — excluse din statisticile de limbaj.
 ext/** linguist-vendored
 
+# Tipuri text declarate explicit (pentru claritate)
 *.cpp text eol=lf
 *.hpp text eol=lf
 *.h text eol=lf
@@ -8,15 +14,6 @@ ext/** linguist-vendored
 CMakeLists.txt text eol=lf
 *.cmake text eol=lf
 *.props text eol=lf
-
-build/ export-ignore
-cmake-build-debug/ export-ignore
-cmake-build-release/ export-ignore
-*.o binary
-*.a binary
-*.so binary
-*.dll binary
-*.exe binary
 
 *.sh text eol=lf
 *.command text eol=lf
@@ -28,3 +25,16 @@ tastatura.txt text eol=lf
 *.supp text eol=lf
 
 *.csv text eol=lf
+*.json text eol=lf
+
+# Excluse din arhivele de export (git archive)
+build/ export-ignore
+cmake-build-debug/ export-ignore
+cmake-build-release/ export-ignore
+
+# Fișiere binare — nu se normalizează niciodată
+*.o binary
+*.a binary
+*.so binary
+*.dll binary
+*.exe binary

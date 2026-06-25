@@ -35,7 +35,7 @@ FetchContent_Declare(
 FetchContent_Declare(
     spdlog
     GIT_REPOSITORY https://github.com/gabime/spdlog.git
-    GIT_TAG        v1.14.1   # tag stabil @ 2024-04
+    GIT_TAG        v1.15.3   # tag stabil @ 2025-05; bundle fmt 11, compatibil cu AppleClang/libc++ recent
     GIT_SHALLOW    1
     GIT_PROGRESS   ON
 )

@@ -168,8 +168,6 @@ JsonValue toJson(const ShoppingList& list){
 }
 
 ShoppingList shoppingListFromJson(const JsonValue& v){
-    // Tema 3: crearea produselor este delegata Factory-ului, eliminand
-    // dispatch-ul if/else duplicat care exista aici si in alte locuri.
     ShoppingList list;
     const ShoppingItemFactory factory;
     for(const JsonValue& itemJson : v.at("items").asArray()){

@@ -2,6 +2,7 @@
 #include "../../include/exceptions/AppError.hpp"
 
 #include <fstream>
+#include <string>
 #include <nlohmann/json.hpp>
 
 AppConfig& AppConfig::instance() {
@@ -17,7 +18,7 @@ void AppConfig::load(const std::string& path) {
 
     nlohmann::json j;
     try {
-        in >> j;  // parsare cu biblioteca externa nlohmann/json
+        in >> j;
     } catch (const nlohmann::json::parse_error& e) {
         throw AppError(std::string("Config parse error: ") + e.what(), "CONFIG_PARSE");
     }

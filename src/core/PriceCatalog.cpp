@@ -3,6 +3,7 @@
 #include "../../include/exceptions/ItemNotFoundError.hpp"
 
 #include <fstream>
+#include <string>
 #include <nlohmann/json.hpp>
 
 void PriceCatalog::load(const std::string& path) {

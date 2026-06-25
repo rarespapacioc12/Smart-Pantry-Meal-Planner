@@ -5,17 +5,6 @@
 #include <utility>
 #include <vector>
 
-// ============================================================================
-// Tema 3 - CLASA SABLON (template class)
-// ----------------------------------------------------------------------------
-// Container generic in-memory folosit pentru a stoca si interoga uniform orice
-// entitate de domeniu din Smart Pantry (StockItem din inventar, Recipe din
-// reteta, etc.). Inlocuieste cod duplicat de tip "vector + cautare/filtrare"
-// scris separat pentru fiecare tip.
-//
-// In main.cpp este instantiat de cel putin doua ori cu tipuri diferite:
-//     Repository<StockItem>  si  Repository<Recipe>.
-// ============================================================================
 template <typename T>
 class Repository {
 private:
@@ -33,8 +22,6 @@ public:
 
     const std::vector<T>& all() const { return _items; }
 
-    // Functie membru sablon: returneaza copii ale elementelor care satisfac
-    // predicatul primit (orice callable T -> bool).
     template <typename Predicate>
     std::vector<T> filter(Predicate pred) const {
         std::vector<T> out;
@@ -42,14 +29,12 @@ public:
         return out;
     }
 
-    // Primul element care satisface predicatul, sau nullptr daca nu exista.
     template <typename Predicate>
     const T* findIf(Predicate pred) const {
         auto it = std::find_if(_items.begin(), _items.end(), pred);
         return it == _items.end() ? nullptr : &(*it);
     }
 
-    // Aplica o operatie pe fiecare element (vizualizare read-only).
     template <typename Fn>
     void forEach(Fn fn) const {
         for (const T& item : _items) {
