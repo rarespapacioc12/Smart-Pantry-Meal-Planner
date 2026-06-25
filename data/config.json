@@ -1,0 +1,25 @@
+{
+  "dataFiles": {
+    "inventory": "data/inventory.json",
+    "recipes": "data/recipes.json",
+    "shoppingList": "data/shopping_list.json",
+    "prices": "data/prices.json"
+  },
+  "output": {
+    "inventory": "data/inventory.out.json",
+    "recipes": "data/recipes.out.json",
+    "shoppingList": "data/shopping_list.out.json",
+    "mealPlan": "data/meal_plan.out.json"
+  },
+  "planner": {
+    "today": "2026-05-18",
+    "topRecipes": 3,
+    "expiryWindowDays": 20,
+    "portions": 2,
+    "defaultSupplier": "Smart Pantry Auto-Order"
+  },
+  "logging": {
+    "level": "info",
+    "file": "logs/smartpantry.log"
+  }
+}

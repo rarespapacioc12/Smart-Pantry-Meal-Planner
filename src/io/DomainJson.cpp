@@ -6,17 +6,8 @@
 #include "../../include/core/BulkShoppingItem.hpp"
 #include "../../include/core/PromotedShoppingItem.hpp"
 #include "../../include/core/OrganicShoppingItem.hpp"
+#include "../../include/factory/ShoppingItemFactory.hpp"
 #include "../../include/exceptions/AppError.hpp"
-
-namespace {
-    Season parseSeason(const std::string& s){
-        if(s == "Spring") return Season::Spring;
-        if(s == "Summer") return Season::Summer;
-        if(s == "Autumn") return Season::Autumn;
-        if(s == "Winter") return Season::Winter;
-        throw AppError("Unknown season: " + s, "JSON_DOMAIN");
-    }
-}
 
 namespace DomainJson {
 
@@ -163,15 +154,6 @@ namespace {
         }
         return JsonValue(std::move(o));
     }
-
-    Priority parsePriorityName(const std::string& s){
-        if(s == "Low")    return Priority::Low;
-        if(s == "Normal") return Priority::Normal;
-        if(s == "Medium") return Priority::Medium;
-        if(s == "High")   return Priority::High;
-        if(s == "Urgent") return Priority::Urgent;
-        throw AppError("Unknown priority: " + s, "JSON_DOMAIN");
-    }
 }
 
 JsonValue toJson(const ShoppingList& list){
@@ -186,55 +168,12 @@ JsonValue toJson(const ShoppingList& list){
 }
 
 ShoppingList shoppingListFromJson(const JsonValue& v){
+    // Tema 3: crearea produselor este delegata Factory-ului, eliminand
+    // dispatch-ul if/else duplicat care exista aici si in alte locuri.
     ShoppingList list;
+    const ShoppingItemFactory factory;
     for(const JsonValue& itemJson : v.at("items").asArray()){
-        const std::string& type = itemJson.at("type").asString();
-        const std::string& name = itemJson.at("name").asString();
-        const double       qty  = itemJson.at("quantity").asNumber();
-        const Unit         unit = parseUnit(itemJson.at("unit").asString());
-        const double       price = itemJson.at("basePrice").asNumber();
-        const Priority     pri  = parsePriorityName(itemJson.at("priority").asString());
-
-        if(type == "Standard"){
-            list.addItem(ShoppingList::createItem(
-                type, name, qty, unit, price, pri, 0,
-                Date::today(), 0, Certification::EUOrganic,
-                itemJson.at("supplier").asString()));
-        } else if(type == "Promoted"){
-            const Date end = itemJson.has("promoEnd")
-                ? Date::fromISO(itemJson.at("promoEnd").asString())
-                : Date(2099, 12, 31);
-            list.addItem(ShoppingList::createItem(
-                type, name, qty, unit, price, pri,
-                itemJson.at("discountPercentage").asNumber(),
-                end));
-        } else if(type == "Bulk"){
-            list.addItem(ShoppingList::createItem(
-                type, name, qty, unit, price, pri,
-                itemJson.at("minQuantity").asNumber(),
-                Date::today(),
-                itemJson.at("bulkDiscount").asNumber()));
-        } else if(type == "Organic"){
-            const std::string& certStr = itemJson.at("certification").asString();
-            list.addItem(ShoppingList::createItem(
-                type, name, qty, unit, price, pri,
-                itemJson.at("organicMarkup").asNumber(),
-                Date::today(), 0,
-                parseCertification(certStr)));
-        } else if(type == "Seasonal"){
-            const Date ref = itemJson.has("referenceDate")
-                ? Date::fromISO(itemJson.at("referenceDate").asString())
-                : Date::today();
-            list.addItem(ShoppingList::createItem(
-                type, name, qty, unit, price, pri,
-                itemJson.at("inSeasonDiscount").asNumber(),
-                ref,
-                itemJson.at("offSeasonSurcharge").asNumber(),
-                Certification::EUOrganic, "Generic",
-                parseSeason(itemJson.at("season").asString())));
-        } else {
-            throw AppError("Unknown shopping item type: " + type, "JSON_DOMAIN");
-        }
+        list.addItem(std::shared_ptr<ShoppingItem>(factory.createFromJson(itemJson)));
     }
     return list;
 }

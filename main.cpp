@@ -1,23 +1,28 @@
-#include <cmath>
 #include <iostream>
-#include <memory>
+#include <string>
 #include <vector>
-#include "include/core/Ingredient.hpp"
-#include "include/core/Recipe.hpp"
-#include "include/core/RecipeBook.hpp"
+
+#include <cxxopts.hpp>  // Tema 3: biblioteca externa pentru argumente in linia de comanda
+
+#include "include/config/AppConfig.hpp"
+#include "include/utils/Logger.hpp"
+#include "include/templates/Repository.hpp"
+#include "include/templates/Algorithms.hpp"
+#include "include/factory/ShoppingItemFactory.hpp"
+
 #include "include/core/Inventory.hpp"
 #include "include/core/StockItem.hpp"
-#include "include/core/ShoppingItem.hpp"
+#include "include/core/Recipe.hpp"
+#include "include/core/RecipeBook.hpp"
+#include "include/core/PriceCatalog.hpp"
+#include "include/core/MealPlanner.hpp"
+#include "include/core/ShoppingList.hpp"
 #include "include/core/StandardShoppingItem.hpp"
 #include "include/core/BulkShoppingItem.hpp"
-#include "include/core/PromotedShoppingItem.hpp"
-#include "include/core/OrganicShoppingItem.hpp"
-#include "include/core/SeasonalShoppingItem.hpp"
-#include "include/core/ShoppingList.hpp"
+
 #include "include/io/DomainJson.hpp"
 #include "include/io/JsonReader.hpp"
-#include "include/io/JsonWriter.hpp"
-#include "include/utils/Date.hpp"
+
 #include "include/exceptions/AppError.hpp"
 #include "include/exceptions/InvalidQuantityError.hpp"
 #include "include/exceptions/ItemNotFoundError.hpp"
@@ -25,152 +30,167 @@
 #include "include/exceptions/JsonParseError.hpp"
 
 namespace {
-    const std::string kInventoryIn   = "data/inventory.json";
-    const std::string kRecipesIn     = "data/recipes.json";
-    const std::string kShoppingIn    = "data/shopping_list.json";
-    const std::string kInventoryOut  = "data/inventory.out.json";
-    const std::string kRecipesOut    = "data/recipes.out.json";
-    const std::string kShoppingOut   = "data/shopping_list.out.json";
-}
 
-static void demoInventoryAndRecipesFromJson(){
-    std::cout << "===== PANTRY & RECIPES (loaded from JSON) =====\n\n";
+// Tema 3: instantiem clasa sablon Repository<T> cu DOUA tipuri diferite
+// (StockItem si Recipe) si folosim FUNCTIILE sablon algo::filterItems / algo::minBy
+// pentru fiecare dintre ele, demonstrand reutilizarea generica.
+void demoTemplates(const Inventory& pantry, const RecipeBook& book, const AppConfig& cfg) {
+    std::cout << "===== TEMPLATES (Repository<T> + algoritmi generici) =====\n\n";
 
-    std::cout << "Loading " << kInventoryIn << " ...\n";
-    Inventory pantry = DomainJson::loadInventory(kInventoryIn);
-    std::cout << "Loading " << kRecipesIn   << " ...\n";
-    RecipeBook book  = DomainJson::loadRecipeBook(kRecipesIn);
-    std::cout << "Loaded " << pantry.items().size() << " stock items and "
-              << book.all().size() << " recipes.\n\n";
+    Repository<StockItem> stockRepo(pantry.items());
+    Repository<Recipe>    recipeRepo(book.all());
 
-    std::cout << "--- Inventory ---\n" << pantry << '\n';
+    Logger::instance().info("Repository<StockItem> size=" + std::to_string(stockRepo.size()) +
+                            ", Repository<Recipe> size=" + std::to_string(recipeRepo.size()));
 
-    std::cout << "--- Recipes ---\n" << book << '\n';
+    const Date& today = cfg.today();
+    const int window = cfg.expiryWindowDays();
 
-    const Date today(2026, 5, 18);
-    std::cout << "--- Items expiring within 20 days of " << today.toISO() << " ---\n";
-    for(const StockItem& item : pantry.expiringSoon(20, today)){
-        std::cout << item;
+    // Cheie de expirare robusta: produsele deja expirate primesc o valoare negativa
+    // (daysUntil arunca exceptie pentru date trecute).
+    const auto expiryKey = [&](const StockItem& s) -> int {
+        return s.isExpired(today) ? -1 : s.daysToExpire(today);
+    };
+
+    // Functia sablon filterItems instantiata pentru StockItem.
+    const std::vector<StockItem> expiring = algo::filterItems(
+        stockRepo.all(),
+        [&](const StockItem& s) { return expiryKey(s) <= window; });
+    std::cout << "Stock items expiring within " << window << " days (incl. expired): "
+              << expiring.size() << '\n';
+
+    // Functia sablon filterItems instantiata pentru Recipe.
+    const std::vector<Recipe> cookable = algo::filterItems(
+        recipeRepo.all(),
+        [&](const Recipe& r) { return r.missing(pantry, cfg.portions()).empty(); });
+    std::cout << "Recipes fully cookable now (" << cfg.portions()
+              << " portions): " << cookable.size() << '\n';
+
+    // Functia sablon minBy instantiata pentru StockItem si pentru Recipe.
+    if (const StockItem* soonest = algo::minBy(stockRepo.all(), expiryKey)) {
+        std::cout << "Soonest to expire: " << soonest->ingredient().name()
+                  << " (expires " << soonest->expiry().toISO() << ")\n";
+    }
+    if (const Recipe* quickest = algo::minBy(recipeRepo.all(),
+            [](const Recipe& r) { return r.prepMinutes(); })) {
+        std::cout << "Quickest recipe: " << quickest->title()
+                  << " (" << quickest->prepMinutes() << " min)\n";
     }
     std::cout << '\n';
-
-    std::cout << "--- Top recipe recommendations ---\n";
-    std::vector<const Recipe*> recommendations = book.recommendTopK(pantry, 3);
-    for(std::size_t i = 0; i < recommendations.size(); ++i){
-        std::cout << (i + 1) << ". " << recommendations[i]->title() << '\n';
-    }
-    std::cout << '\n';
-
-    std::cout << "Consuming 200g of Bacon...\n";
-    pantry.consumeByExpiry("Bacon", 200);
-    std::cout << "Remaining Bacon: " << pantry.available("Bacon") << "g\n\n";
-
-    std::cout << "Saving updated inventory to " << kInventoryOut << " ...\n";
-    DomainJson::saveInventory(kInventoryOut, pantry);
-    std::cout << "Saving recipes (round-trip) to " << kRecipesOut << " ...\n";
-    DomainJson::saveRecipeBook(kRecipesOut, book);
-    std::cout << "Done.\n\n";
 }
 
-static void demoShoppingListFromJson(){
+void demoMealPlan(const Inventory& pantry, const RecipeBook& book,
+                  const PriceCatalog& prices, const AppConfig& cfg) {
+    std::cout << "===== MEAL PLAN (Factory + auto shopping list) =====\n\n";
+
+    const ShoppingItemFactory factory;  // Design pattern: Factory
+    const MealPlanner planner(pantry, book, prices, factory);
+
+    const ShoppingList autoList = planner.planShoppingForTopRecipes(
+        cfg.topRecipes(), cfg.portions(), cfg.defaultSupplier());
+
+    std::cout << "Auto-generated shopping list for missing ingredients:\n";
+    std::cout << autoList << '\n';
+    std::cout << "Estimated cost: " << autoList.calculateTotalCost()
+              << ' ' << prices.currency() << "\n\n";
+
+    planner.exportPlan(cfg.mealPlanOut(), cfg.topRecipes(), cfg.portions(), cfg.defaultSupplier());
+    std::cout << "Meal plan exported (nlohmann/json) to " << cfg.mealPlanOut() << "\n\n";
+    Logger::instance().info("Meal plan exported to " + cfg.mealPlanOut());
+}
+
+void demoShoppingListFromJson(const AppConfig& cfg) {
     std::cout << "===== SHOPPING LIST (loaded from JSON) =====\n\n";
 
-    std::cout << "Loading " << kShoppingIn << " ...\n";
-    ShoppingList list = DomainJson::loadShoppingList(kShoppingIn);
-    std::cout << "Loaded " << list.size() << " items.\n\n";
+    ShoppingList list = DomainJson::loadShoppingList(cfg.shoppingIn());
+    std::cout << "Loaded " << list.size() << " items.\n";
+    std::cout << "Total cost: "        << list.calculateTotalCost()            << " lei\n";
+    std::cout << "Organic subtotal: "  << list.calculateByCategory("Organic")  << " lei\n";
+    std::cout << "Seasonal subtotal: " << list.calculateByCategory("Seasonal") << " lei\n\n";
 
-    std::cout << list << '\n';
-
-    std::cout << "Total cost: "         << list.calculateTotalCost()             << " lei\n";
-    std::cout << "Organic subtotal: "   << list.calculateByCategory("Organic")   << " lei\n";
-    std::cout << "Seasonal subtotal: "  << list.calculateByCategory("Seasonal")  << " lei\n\n";
-
-    std::cout << "--- canDeliver() via base pointer ---\n";
-    for(const auto& item : list.getPriorityItems(Priority::Low)){
-        std::cout << "  " << item->item_name() << " (" << item->category() << "): "
-                  << (item->canDeliver() ? "deliverable" : "NOT deliverable") << '\n';
-    }
-    std::cout << '\n';
-
-    std::cout << "--- Special offers (dynamic_pointer_cast diagnostics) ---\n";
-    list.applySpecialOffer(5.0);
-    std::cout << '\n';
-
-    std::cout << "Removing 'Pasta' from the list...\n";
-    list.removeItem("Pasta");
-    std::cout << "Items remaining: " << list.size() << "\n\n";
-
-    std::cout << "Saving updated shopping list to " << kShoppingOut << " ...\n";
-    DomainJson::saveShoppingList(kShoppingOut, list);
-
-    std::cout << "Round-trip check: reloading " << kShoppingOut << " ...\n";
-    const ShoppingList reloaded = DomainJson::loadShoppingList(kShoppingOut);
-    const double original_total = list.calculateTotalCost();
-    const double reloaded_total = reloaded.calculateTotalCost();
-    std::cout << "  original total = " << original_total
-              << " | reloaded total = " << reloaded_total
-              << " | match: " << (std::abs(original_total - reloaded_total) < 1e-9 ? "YES" : "NO") << '\n';
-    std::cout << "Done.\n\n";
+    DomainJson::saveShoppingList(cfg.shoppingOut(), list);
+    std::cout << "Saved (round-trip) to " << cfg.shoppingOut() << "\n\n";
 }
 
-static void demoExceptions(){
+// Demonstreaza ierarhia de exceptii construind obiecte deliberat invalide.
+void demoExceptions() {
     std::cout << "===== EXCEPTION HIERARCHY DEMO =====\n\n";
-
-    // 1) InvalidQuantityError thrown from a constructor.
     try {
         StandardShoppingItem bad("Bread", -1, Unit::pcs, 2.0, Priority::Normal, "Local Bakery");
-    } catch (const InvalidQuantityError& e){
-        std::cout << "Caught InvalidQuantityError: " << e.what()
-                  << " [provided=" << e.provided_quantity() << ", code=" << e.code() << "]\n";
+        (void)bad;
+    } catch (const InvalidQuantityError& e) {
+        std::cout << "Caught InvalidQuantityError: " << e.what() << " [code=" << e.code() << "]\n";
     }
-
-    // 2) PricingCalculationError thrown from a constructor.
-    try {
-        BulkShoppingItem bad("Sugar", 10, Unit::g, -5, Priority::Low, 1, 5);
-    } catch (const PricingCalculationError& e){
-        std::cout << "Caught PricingCalculationError: " << e.what()
-                  << " [category=" << e.category() << ", code=" << e.code() << "]\n";
-    }
-
-    // 3) ItemNotFoundError thrown from the static factory.
     try {
         auto item = ShoppingList::createItem("UnknownType", "X", 1, Unit::g, 1, Priority::Low, 0);
         (void)item;
-    } catch (const ItemNotFoundError& e){
-        std::cout << "Caught ItemNotFoundError: " << e.what()
-                  << " [missing=" << e.item_name() << ", code=" << e.code() << "]\n";
+    } catch (const ItemNotFoundError& e) {
+        std::cout << "Caught ItemNotFoundError: " << e.what() << " [code=" << e.code() << "]\n";
     }
-
-    // 4) JsonParseError thrown from the JSON reader.
     try {
         (void)JsonReader::parse("{ \"items\": [1, 2, , 3] }");
-    } catch (const JsonParseError& e){
-        std::cout << "Caught JsonParseError: " << e.what()
-                  << " [line=" << e.line() << ", col=" << e.column() << ", code=" << e.code() << "]\n";
+    } catch (const JsonParseError& e) {
+        std::cout << "Caught JsonParseError: " << e.what() << " [code=" << e.code() << "]\n";
     }
-
-    // 5) Catch as base AppError to show the hierarchy.
-    try {
-        StandardShoppingItem missing_supplier("Milk", 1, Unit::ml, 5.0, Priority::Normal, "");
-    } catch (const AppError& e){
-        std::cout << "Caught AppError: " << e.what() << " [code=" << e.code() << "]\n";
-    }
-
     std::cout << '\n';
 }
 
-int main() {
+}  // namespace
+
+int main(int argc, char** argv) {
     try {
-        demoInventoryAndRecipesFromJson();
-        demoShoppingListFromJson();
+        // Tema 3: parsarea argumentelor cu cxxopts (biblioteca externa).
+        cxxopts::Options options("smartpantry", "Smart Pantry Meal Planner");
+        options.add_options()
+            ("c,config",   "Path to config JSON",
+                cxxopts::value<std::string>()->default_value("data/config.json"))
+            ("p,portions", "Override number of portions to plan for",
+                cxxopts::value<int>())
+            ("v,verbose",  "Enable debug logging",
+                cxxopts::value<bool>()->default_value("false"))
+            ("h,help",     "Print usage");
+        const cxxopts::ParseResult args = options.parse(argc, argv);
+
+        if (args.count("help")) {
+            std::cout << options.help() << '\n';
+            return 0;
+        }
+
+        // Singleton de configurare: toate datele/caile vin din fisier, nimic hardcodat.
+        AppConfig& cfg = AppConfig::instance();
+        cfg.load(args["config"].as<std::string>());
+        if (args.count("portions")) {
+            cfg.overridePortions(args["portions"].as<int>());
+        }
+
+        // Singleton de logging (spdlog), nivelul vine din config sau din --verbose.
+        Logger::instance().init(args["verbose"].as<bool>() ? "debug" : cfg.logLevel(),
+                                cfg.logFile());
+        Logger::instance().info("Smart Pantry started; config loaded.");
+
+        // Citirea starii aplicatiei EXCLUSIV din fisiere.
+        const Inventory   pantry = DomainJson::loadInventory(cfg.inventoryIn());
+        const RecipeBook  book   = DomainJson::loadRecipeBook(cfg.recipesIn());
+        PriceCatalog prices;
+        prices.load(cfg.pricesIn());
+        Logger::instance().info("Loaded " + std::to_string(pantry.items().size()) +
+                                " stock items and " + std::to_string(book.all().size()) + " recipes.");
+
+        demoTemplates(pantry, book, cfg);
+        demoMealPlan(pantry, book, prices, cfg);
+        demoShoppingListFromJson(cfg);
         demoExceptions();
+
         std::cout << "===== DEMO COMPLETED SUCCESSFULLY =====\n";
+        Logger::instance().info("Smart Pantry finished successfully.");
     }
-    catch(const AppError& e){
+    catch (const AppError& e) {
+        Logger::instance().error(std::string("App error: ") + e.what());
         std::cerr << "App error [" << e.code() << "]: " << e.what() << '\n';
         return 1;
     }
-    catch(const std::exception& e){
+    catch (const std::exception& e) {
+        Logger::instance().error(std::string("Error: ") + e.what());
         std::cerr << "Error: " << e.what() << '\n';
         return 1;
     }

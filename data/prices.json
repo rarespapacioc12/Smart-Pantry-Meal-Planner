@@ -1,0 +1,13 @@
+{
+  "currency": "lei",
+  "prices": [
+    { "ingredient": "Pasta",     "pricePerUnit": 0.012 },
+    { "ingredient": "Eggs",      "pricePerUnit": 1.10  },
+    { "ingredient": "Bacon",     "pricePerUnit": 0.045 },
+    { "ingredient": "Parmesan",  "pricePerUnit": 0.090 },
+    { "ingredient": "Salt",      "pricePerUnit": 0.003 },
+    { "ingredient": "Tomatoes",  "pricePerUnit": 0.008 },
+    { "ingredient": "Olive oil", "pricePerUnit": 0.030 },
+    { "ingredient": "Chicken",   "pricePerUnit": 0.025 }
+  ]
+}

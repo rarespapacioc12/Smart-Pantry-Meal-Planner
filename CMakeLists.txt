@@ -16,24 +16,38 @@ include(cmake/CopyHelper.cmake)
 
 ###############################################################################
 
-# external dependencies with FetchContent
-# include(FetchContent)
-#
-# set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
-# set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
-#
-# NOTE: Also update env vars used for caching in
-#     - .github/actions/configure-cmake/action.yml
-#     - .github/workflows/cmake.yml
-# FetchContent_Declare(
-#     SomeLib
-#     GIT_REPOSITORY https://github.com/<SomeUser>/<SomeLib>.git
-#     GIT_TAG        <some_git_hash> # <which tag/branch @ <some_date>>
-#     GIT_SHALLOW    1  # works only with branches or tags, not with arbitrary commit hashes
-#     GIT_PROGRESS   ON
-# )
-#
-# FetchContent_MakeAvailable(SomeLib)
+# Tema 3 - dependinte externe descarcate cu FetchContent:
+#   * nlohmann/json - stocare/citire JSON (config, preturi, export meal plan)
+#   * spdlog        - logging (folosit de Singleton-ul Logger)
+#   * cxxopts       - argumente in linia de comanda (folosit in main)
+include(FetchContent)
+
+set(FETCHCONTENT_QUIET OFF CACHE INTERNAL "Override verbose output" FORCE)
+set(FETCHCONTENT_UPDATES_DISCONNECTED ON CACHE INTERNAL "Override update strategy" FORCE)
+
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG        v3.11.3   # tag stabil @ 2023-11
+    GIT_SHALLOW    1
+    GIT_PROGRESS   ON
+)
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG        v1.14.1   # tag stabil @ 2024-04
+    GIT_SHALLOW    1
+    GIT_PROGRESS   ON
+)
+FetchContent_Declare(
+    cxxopts
+    GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+    GIT_TAG        v3.2.0    # tag stabil @ 2023-09
+    GIT_SHALLOW    1
+    GIT_PROGRESS   ON
+)
+
+FetchContent_MakeAvailable(nlohmann_json spdlog cxxopts)
 
 ###############################################################################
 
@@ -63,6 +77,11 @@ target_sources(${MAIN_EXECUTABLE_NAME}
         src/core/ShoppingList.cpp
         src/core/StockItem.cpp
         src/core/Types.cpp
+        src/core/PriceCatalog.cpp
+        src/core/MealPlanner.cpp
+        src/config/AppConfig.cpp
+        src/factory/ShoppingItemFactory.cpp
+        src/utils/Logger.cpp
         src/exceptions/AppError.cpp
         src/exceptions/InvalidQuantityError.cpp
         src/exceptions/ItemNotFoundError.cpp
@@ -92,9 +111,15 @@ target_include_directories(${MAIN_EXECUTABLE_NAME} PUBLIC
 target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE
     ext
 )
-# target_include_directories(${MAIN_EXECUTABLE_NAME} SYSTEM PRIVATE ${<SomeLib>_SOURCE_DIR}/include)
-# target_link_directories(${MAIN_EXECUTABLE_NAME} PRIVATE ${<SomeLib>_BINARY_DIR}/lib)
-# target_link_libraries(${MAIN_EXECUTABLE_NAME} <SomeLib>)
+
+# Tema 3 - link-uirea bibliotecilor externe (target-urile aduc include-urile ca SYSTEM,
+# deci cppcheck/clang-tidy nu raporteaza warning-uri din ele).
+target_link_libraries(${MAIN_EXECUTABLE_NAME}
+    PRIVATE
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
+        cxxopts::cxxopts
+)
 
 ###############################################################################
 

@@ -153,13 +153,24 @@ O cerință nu se consideră îndeplinită dacă este realizată doar prin cod g
 ## Tema 3
 
 #### Cerințe
-- [ ] 2 șabloane de proiectare (design patterns)
-- [ ] o clasă șablon cu sens; minim **2 instanțieri**
-  - [ ] preferabil și o funcție șablon (template) cu sens; minim 2 instanțieri
+- [x] 2 șabloane de proiectare (design patterns)
+- [x] o clasă șablon cu sens; minim **2 instanțieri**
+  - [x] preferabil și o funcție șablon (template) cu sens; minim 2 instanțieri
 - [ ] minim 80-90% din codul propriu să fie C++
 <!-- - [ ] o specializare pe funcție/clasă șablon -->
 - [ ] tag de `git` pe commit cu **toate bifele**: de exemplu `v0.3` sau `v1.0`
 - [ ] code review #3 2 proiecte
+
+#### Map cerințe → cod
+
+- **Design patterns**:
+  - *Singleton* — `AppConfig` (`include/config/AppConfig.hpp`) citește toate căile și parametrii din `data/config.json`, iar `Logger` (`include/utils/Logger.hpp`) oferă un punct unic de logare. Ambele înlocuiesc fostele constante globale/hardcodate din `main.cpp`.
+  - *Factory* — `ShoppingItemFactory` (`include/factory/ShoppingItemFactory.hpp`) construiește obiectul concret din ierarhia `ShoppingItem` pe baza unei specificații JSON, printr-un registru `type → creator`. Este sursa unică de creare: `DomainJson::shoppingListFromJson` și `MealPlanner` deleagă aici, eliminând dispatch-ul `if/else` duplicat.
+- **Clasă șablon**: `Repository<T>` (`include/templates/Repository.hpp`) — container generic cu `filter`/`findIf`/`forEach`. Instanțiat în `main.cpp` ca `Repository<StockItem>` și `Repository<Recipe>`.
+- **Funcție șablon**: `algo::filterItems` și `algo::minBy` (`include/templates/Algorithms.hpp`), fiecare apelată în `main.cpp` pentru `StockItem` și pentru `Recipe`.
+- **Biblioteci externe** (pe lângă cea de stocare, integrate cu `FetchContent` în `CMakeLists.txt`): **nlohmann/json** (citire `config.json`/`prices.json`, export plan de mese), **spdlog** (logging în `Logger`) și **cxxopts** (argumente CLI: `--config`, `--portions`, `--verbose`).
+- **Logica de business**: `MealPlanner` (`include/core/MealPlanner.hpp`) alege top-K rețete, calculează ingredientele lipsă față de inventar, generează automat o listă de cumpărături (prețuri din `PriceCatalog`, produse create prin `ShoppingItemFactory`) și exportă planul în JSON.
+- **Date din fișiere**: starea aplicației este populată exclusiv din `data/config.json`, `data/prices.json`, `data/inventory.json`, `data/recipes.json` și `data/shopping_list.json`.
 
 ## Instrucțiuni de compilare
 
